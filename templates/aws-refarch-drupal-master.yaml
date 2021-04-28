@@ -296,8 +296,7 @@ Parameters:
     Type: String
   InstallProfile:
     Default: localgov
-    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9 _-]*)([a-zA-Z0-9])$
-    Description: The Drupal install profile to use.
+    Description: '[ Optional ] The Drupal install profile to use. Leave blank if you do not want to run a Drupal site install.'
     Type: String
   ComposerProject:
     Default: localgovdrupal/localgov-project
