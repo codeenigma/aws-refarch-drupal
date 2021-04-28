@@ -300,7 +300,7 @@ Parameters:
     Type: String
   ComposerProject:
     Default: localgovdrupal/localgov-project
-    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9\/ _-]*)([a-zA-Z0-9])$
+    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9\/ _-]*)([a-zA-Z0-9-:\.]*)$
     Description: The composer project to install.
     Type: String
   ComposerUseDev:
