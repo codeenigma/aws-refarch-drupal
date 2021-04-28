@@ -30,6 +30,7 @@ Metadata:
         - InstallProfile
         - DomainName
         - Directory
+        - Webroot
         - AdminUsername
         - AdminPassword
         - AdminEmail
@@ -89,6 +90,8 @@ Metadata:
         default: Admin Username
       Directory:
         default: Site Directory
+      Webroot:
+        default: Application Webroot
       DomainName:
         default: Site Domain
       Locale:
@@ -223,6 +226,11 @@ Parameters:
     AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9_-])*([a-zA-Z0-9])$
     Description: The Drupal site directory.
     Type: String
+  Webroot:
+    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9_-])*([a-zA-Z0-9])$
+    Description: The application webroot for the Apache vhost.
+    Type: String
+    Default: web
   DomainName:
     AllowedPattern: ^$|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$
     Description: '[ Optional ] The main domain name of the Drupal site (e.g. example.com). Leave empty to use the ALB DNS name for the Drupal site.'
@@ -406,8 +414,8 @@ Resources:
                     "if [ ! -f /etc/httpd/conf.d/", !Ref Directory, ".conf ]; then\n",                    
                     "   touch /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
                     "   echo 'ServerName 127.0.0.1:80' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
-                    "   echo 'DocumentRoot /var/www/drupal/", !Ref Directory, "/web' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
-                    "   echo '<Directory /var/www/drupal/", !Ref Directory, "/web>' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
+                    "   echo 'DocumentRoot /var/www/drupal/", !Ref Directory, "/", !Ref Webroot, "' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
+                    "   echo '<Directory /var/www/drupal/", !Ref Directory, "/", !Ref Webroot, ">' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
                     "   echo '  Options Indexes FollowSymLinks' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
                     "   echo '  AllowOverride All' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
                     "   echo '  Require all granted' >> /etc/httpd/conf.d/", !Ref Directory, ".conf\n",
@@ -469,6 +477,8 @@ Resources:
                     "\n",
                     "# enable PHP logging to journald\n",
                     "sed -i 's/;error_log = syslog/error_log = syslog/g' /etc/php.ini\n",
+                    "# set drush si name\n",
+                    "DRUSH_SI=", !Ref InstallProfile, "\n",
                     "\n",
                     "# sleep for a random number of seconds up to 60 to avoid running composer simultaneously on first install\n",
                     "sleep $((RANDOM % 60))\n",
@@ -483,15 +493,21 @@ Resources:
                     "  # no 'stable' version of LocalGovDrupal yet\n",
                     "  cd /var/www/drupal/\n",
                     "  su -c 'composer create-project --stability dev ", !Ref ComposerProject, " ", !Ref Directory, " --remove-vcs' drupal\n",
-                    "  # delete any settings.php files already there\n",
-                    "  rm -Rf ", !Ref Directory, "/web/sites/*/settings.*\n",
-                    "  # install the site with drush\n",
-                    "  su -c '", !Ref Directory, "/vendor/drush/drush/drush -y site-install ", !Ref InstallProfile, " --db-url=mysql://", !Ref DatabaseMasterUsername, ":", !Ref DatabaseMasterPassword, "@", !Ref DatabaseClusterEndpointAddress, "/", !Ref DatabaseName, "  --account-pass=", !Ref AdminPassword, " --account-mail=", !Ref AdminEmail, "' drupal\n",
-                    "  # run a cache rebuild for safety\n",
-                    "  su -c '/var/www/drupal/", !Ref Directory, "/vendor/drush/drush/drush -y cr' drupal\n",
+                    "\n",
+                    "  # check if we do a drush si\n",
+                    "  if [ ! -z '$DRUSH_SI' ]\n",
+                    "  then\n",
+                    "    # delete any settings.php files already there\n",
+                    "    rm -Rf ", !Ref Directory, "/", !Ref Webroot, "/sites/*/settings.*\n",
+                    "    # install the site with drush\n",
+                    "    su -c '", !Ref Directory, "/vendor/drush/drush/drush -y site-install ", !Ref InstallProfile, " --db-url=mysql://", !Ref DatabaseMasterUsername, ":", !Ref DatabaseMasterPassword, "@", !Ref DatabaseClusterEndpointAddress, "/", !Ref DatabaseName, "  --account-pass=", !Ref AdminPassword, " --account-mail=", !Ref AdminEmail, "' drupal\n",
+                    "    # run a cache rebuild for safety\n",
+                    "    su -c '/var/www/drupal/", !Ref Directory, "/vendor/drush/drush/drush -y cr' drupal\n",
+                    "  fi\n",
+                    "\n",
                     "else\n",
                     "  # wait until Drupal is built so Apache restart step doesn't fail\n",
-                    "  until [ -d /var/www/drupal/", !Ref Directory, "/web ]\n",
+                    "  until [ -d /var/www/drupal/", !Ref Directory, "/", !Ref Webroot, " ]\n",
                     "  do\n",
                     "    sleep 30\n",
                     "  done\n",
