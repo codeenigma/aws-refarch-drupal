@@ -494,7 +494,7 @@ Resources:
                     "  su -c 'composer create-project --stability dev ", !Ref ComposerProject, " ", !Ref Directory, " --remove-vcs' drupal\n",
                     "\n",
                     "  # check if we do a drush si\n",
-                    "  if [ ! -z '$DRUSH_SI' ]\n",
+                    "  if [ ! -z \"$DRUSH_SI\" ]\n",
                     "  then\n",
                     "    # delete any settings.php files already there\n",
                     "    rm -Rf ", !Ref Directory, "/", !Ref Webroot, "/sites/*/settings.*\n",
