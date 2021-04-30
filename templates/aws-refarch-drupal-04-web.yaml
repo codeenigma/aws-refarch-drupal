@@ -400,6 +400,7 @@ Resources:
               php-pdo: []
               php-mbstring: []
               php-opcache: []
+              php-bcmath: []
               php-pecl-memcached: []
               php-pecl-apcu: []
               php-xml: []
