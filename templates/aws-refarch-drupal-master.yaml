@@ -45,6 +45,7 @@ Metadata:
         - AdminPassword
         - AdminEmail
         - Directory
+        - Webroot
         - DomainName
         - Locale
     ParameterLabels:
@@ -96,6 +97,8 @@ Metadata:
         default: Admin Email
       Directory:
         default: Site Directory
+      Webroot:
+        default: Application Webroot
       DomainName:
         default: Site Domain
       Locale:
@@ -273,6 +276,11 @@ Parameters:
     AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9_-])*([a-zA-Z0-9])$
     Description: The Drupal site directory.
     Type: String
+  Webroot:
+    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9_-])*([a-zA-Z0-9])$
+    Description: The application webroot for the Apache vhost.
+    Type: String
+    Default: web
   DomainName:
     AllowedPattern: ^$|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$
     Description: '[ Optional ] The main domain name of the Drupal site (e.g. example.com).'
@@ -288,12 +296,11 @@ Parameters:
     Type: String
   InstallProfile:
     Default: localgov
-    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9 _-]*)([a-zA-Z0-9])$
-    Description: The Drupal install profile to use.
+    Description: '[ Optional ] The Drupal install profile to use. Leave blank if you do not want to run a Drupal site install.'
     Type: String
   ComposerProject:
     Default: localgovdrupal/localgov-project
-    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9\/ _-]*)([a-zA-Z0-9])$
+    AllowedPattern: ^([a-zA-Z0-9])([a-zA-Z0-9\/ _-]*)([a-zA-Z0-9-:\.]*)$
     Description: The composer project to install.
     Type: String
   ComposerUseDev:
@@ -542,6 +549,8 @@ Resources:
           !Ref AdminUsername
         Directory:
           !Ref Directory
+        Webroot:
+          !Ref Webroot
         DomainName:
           !Ref DomainName
         Locale:
